@@ -10,6 +10,7 @@
 
 // Include GLM
 #include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp> // after <glm/glm.hpp>
 using namespace glm;
 
 #include <algorithm>

@@ -2,9 +2,55 @@
 
 // An array of 3 vectors which represents 3 vertices
 static const GLfloat g_vertex_buffer_data[] = {
-    -0.25f,  0.5f, 0.0f,
-     0.25f,  0.5f, 0.0f,
-     0.0f,  1.0f, 0.0f,
+   1.0f,  1.0f, 0.001f,
+  -1.0f,  1.0f, 0.001f,
+   1.0f, -1.0f, 0.001f,
+
+  -1.0f, -1.0f, 0.001f,
+  -1.0f,  1.0f, 0.001f,
+   1.0f, -1.0f, 0.001f,
+
+   1.0f,  0.999f, -0.0f,
+   1.0f, -1.0f, -0.0f,
+   1.0f, -1.0f, -1.0f,
+
+   1.0f, -1.0f, -1.0f,
+   1.0f,  0.999f, -1.0f,
+   1.0f,  0.999f, -0.0f,
+
+   1.0f,  1.0f, 0.0f,
+  -1.0f,  1.0f, 0.0f,
+   1.0f,  1.0f, -1.0f,
+
+   1.0f,  1.0f, -1.0f,
+  -1.0f,  1.0f, -1.0f,
+  -1.0f,  1.0f, 0.001f,
+
+
+   1.0f,  1.0f, 1.002f,
+  -1.0f,  1.0f, 1.002f,
+   1.0f, -1.0f, 1.002f,
+
+  -1.0f, -1.0f, 1.002f,
+  -1.0f,  1.0f, 1.002f,
+   1.0f, -1.0f, 1.002f,
+
+   1.0f,  0.999f, 1.001f,
+   1.0f, -1.0f, 1.001f,
+   1.0f, -1.0f, 0.001f,
+
+   1.0f, -1.0f, 0.001f,
+   1.0f,  0.999f, 0.001f,
+   1.0f,  0.999f, 1.001f,
+
+   1.0f,  1.0f, 1.001f,
+  -1.0f,  1.0f, 1.001f,
+   1.0f,  1.0f, 0.001f,
+
+   1.0f,  1.0f, 0.001f,
+  -1.0f,  1.0f, 0.001f,
+  -1.0f,  1.0f, 1.002f,
+
 };
 
 void initGLEW() {
@@ -31,6 +77,26 @@ int main() {
   GLuint programID = LoadShaders("SimpleVertexShader.vertexshader",
                                  "SimpleFragmentShader.fragmentshader");
 
+  // Get a handle for our "MVP" uniform
+  GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+
+  // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit
+  // <-> 100 units
+  glm::mat4 Projection =
+  //    glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+  glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f);
+  // // In world coordinates
+
+  // Camera matrix
+  glm::mat4 View = glm::lookAt(
+      glm::vec3(4, 3, 3), // Camera is at (4,3,3), in World Space
+      glm::vec3(0, 0, 0), // and looks at the origin
+      glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+  );
+  // Model matrix : an identity matrix (model will be at the origin)
+  glm::mat4 Model = glm::mat4(1.0f);
+  glm::mat4 MVP = Projection * View * Model;
+
   // Create VAO??
   // This will identify our vertex buffer
   GLuint vertexbuffer;
@@ -42,7 +108,7 @@ int main() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data),
                g_vertex_buffer_data, GL_STATIC_DRAW);
 
- glClearColor(0.0f, 0.4f, 0.0f, 0.0f);
+ glClearColor(1.0f, 0.0f, 1.0f, 0.0f);
 
   while (true) {
 
@@ -51,6 +117,10 @@ int main() {
 
     // Use our shader
     glUseProgram(programID);
+
+    // Send our transformation to the currently bound shader, 
+    // in the "MVP" uniform
+    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
     // 1st attribute buffer : vertices
     glEnableVertexAttribArray(0);
@@ -65,7 +135,7 @@ int main() {
     );
 
     // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
+    glDrawArrays(GL_TRIANGLES, 0, sizeof(g_vertex_buffer_data) / (g_vertex_buffer_data[0] * 3));
     glDisableVertexAttribArray(0);
 
     // Swap buffers
